@@ -1,0 +1,9 @@
+volume my-posix
+	type storage/posix
+	option directory /nullx
+end-volume
+
+volume my-nullx
+	type features/nullx
+	subvolumes my-posix
+end-volume
