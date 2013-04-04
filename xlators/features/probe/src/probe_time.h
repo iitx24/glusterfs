@@ -7,17 +7,21 @@
    later), or the GNU General Public License, version 2 (GPLv2), in all
    cases as published by the Free Software Foundation.
 */
-#ifndef __PROBE_H__
-#define __PROBE_H__
+#ifndef __PROBE_TIME_H__
+#define __PROBE_TIME_H__
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
 #include "config.h"
 #endif
 
-typedef struct {
-        gf_boolean_t encrypt_write;
-	gf_boolean_t decrypt_read;
-} probe_private_t;
+/* Check for Linux - this may not work on other OSs */
+#include <time.h>
 
-#endif /* __PROBE_H__ */
+typedef struct {
+	struct timespec linux_time;
+} probe_time_t;
+	
+typedef uint64_t probe_usec_t;
+
+#endif /* __PROBE_TIME_H__ */

@@ -1,5 +1,5 @@
 /*
-   Copyright (c) 2006-2013 Red Hat, Inc. <http://www.redhat.com>
+   Copyright (c) 2006-2012 Red Hat, Inc. <http://www.redhat.com>
    This file is part of GlusterFS.
 
    This file is licensed to you under your choice of the GNU Lesser
@@ -7,8 +7,8 @@
    later), or the GNU General Public License, version 2 (GPLv2), in all
    cases as published by the Free Software Foundation.
 */
-#ifndef __PROBE_H__
-#define __PROBE_H__
+#ifndef __PROBE_STATUS_H__
+#define __PROBE_STATUS_H__
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -16,8 +16,13 @@
 #endif
 
 typedef struct {
-        gf_boolean_t encrypt_write;
-	gf_boolean_t decrypt_read;
-} probe_private_t;
+	probe_usec_t accumulated_time;
+	uint64_t count;
+} probe_stats_time_accumulator_t;
 
-#endif /* __PROBE_H__ */
+typedef struct {
+	probe_stats_time_accumulator_t xlator_latency;
+} probe_stats_t;
+
+
+#endif /* __PROBE_STATUS_H__ */
