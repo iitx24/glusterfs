@@ -1,9 +1,9 @@
 volume my-posix
 	type storage/posix
-	option directory /nullx
+	option directory /export
 end-volume
 
-volume my-nullx
-	type features/nullx
+volume my-probe
+	type features/probe
 	subvolumes my-posix
 end-volume
