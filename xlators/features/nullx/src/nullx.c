@@ -10,6 +10,9 @@
 #include <ctype.h>
 #include <sys/uio.h>
 
+/* Check for Linux - this may not work on other OSs */
+#include <time.h>
+
 #ifndef _CONFIG_H
 #define _CONFIG_H
 #include "config.h"
@@ -20,6 +23,30 @@
 #include "logging.h"
 
 #include "nullx.h"
+
+#if 0
+
+static int
+null_time_get( struct timespec *tp )
+{
+    return clock_gettime(CLOCK_REALTIME, tp);
+}
+
+static int
+null_time_reset( struct timespec *tp )
+{
+    memset(tp, 0, sizeof(struct timespec));
+}
+
+static int 
+nullx_time_add( struct timespec *tp, struct timespec *newtp )
+{
+    tp->tv_sec += newtp->tv_sec;
+    tp->tv_nsec += newtp->tv_nsec;
+
+}
+
+#endif
 
 /*
  * This is a nullx ``encryption'' xlator. It nullx's data when
