@@ -16,7 +16,7 @@
 #endif
 
 typedef struct {
-	probe_usec_t accumulated_time;
+	probe_time_t accumulated_time;
 	uint64_t count;
 } probe_stats_time_accumulator_t;
 
@@ -26,6 +26,6 @@ typedef struct {
 
 int probe_stats_init( probe_stats_t *probe_stats );
 int probe_stats_destroy( probe_stats_t *probe_stats );
-int probe_stats_xlator_latency_add( probe_stats_t *probe_stats, probe_usec_t usec_time );
+int probe_stats_xlator_latency_add( probe_stats_t *probe_stats, probe_time_t usec_time );
 
 #endif /* __PROBE_STATUS_H__ */

@@ -37,7 +37,7 @@ probe_stats_destroy( probe_stats_t *probe_stats )
 
 
 int
-probe_stats_xlator_latency_add( probe_stats_t *probe_stats, probe_usec_t usec_time )
+probe_stats_xlator_latency_add( probe_stats_t *probe_stats, probe_time_t usec_time )
 {
 	probe_stats->xlator_latency.accumulated_time += usec_time;
 	probe_stats->xlator_latency.count++;

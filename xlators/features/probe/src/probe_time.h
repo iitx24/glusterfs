@@ -17,11 +17,16 @@
 
 /* Check for Linux - this may not work on other OSs */
 #include <time.h>
-
-typedef struct {
-	struct timespec linux_time;
-} probe_time_t;
 	
-typedef uint64_t probe_usec_t;
+/** Time in microseconds */
+typedef uint64_t probe_time_t;
+
+probe_time_t probe_time_gettime( void );
+
+static inline probe_time_t
+probe_time_elapsed(probe_time_t start_time, probe_time_t end_time)
+{
+	return end_time - start_time;
+}
 
 #endif /* __PROBE_TIME_H__ */

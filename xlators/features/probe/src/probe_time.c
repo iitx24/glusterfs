@@ -21,28 +21,25 @@
 
 #include "probe_time.h"
 
-static probe_usec_t
-probe_time_to_usec(const probe_time_t *probe_time) 
+static probe_time_t
+probe_timespec_to_probe_time(const struct timespec *probe_time) 
 {
-	probe_usec_t sec_to_usec;
-	probe_usec_t nsec_to_usec;
+	probe_time_t sec_to_usec;
+	probe_time_t nsec_to_usec;
 
-	sec_to_usec = probe_time->linux_time.tv_sec * 1000000LL;
-	nsec_to_usec = probe_time->linux_time.tv_nsec / 1000LL;
+	sec_to_usec = probe_time->tv_sec * 1000000LL;
+	nsec_to_usec = probe_time->tv_nsec / 1000LL;
 
 	return sec_to_usec + nsec_to_usec;
 }
 
-int
-probe_time_gettime(probe_time_t *time_now) 
+probe_time_t
+probe_time_gettime( void )
 {
-	return clock_gettime(CLOCK_MONOTONIC, &time_now->linux_time); 
-}
+	struct timespec linux_time;
 
-probe_usec_t
-probe_time_elapsed(const probe_time_t *start_time,
-		const probe_time_t *end_time)
-{
-	return probe_time_to_usec(end_time) - probe_time_to_usec(start_time);
+	clock_gettime(CLOCK_MONOTONIC, &linux_time); 
+
+	return probe_timespec_to_probe_time(&linux_time);
 }
 

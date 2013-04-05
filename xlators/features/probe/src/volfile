@@ -3,7 +3,18 @@ volume my-posix
 	option directory /export
 end-volume
 
-volume my-probe
+volume my-probe-end
 	type features/probe
+	option probe-group group0
+	option probe-name end
+	option probe-end true
 	subvolumes my-posix
+end-volume
+
+volume my-probe-start
+	type features/probe
+	option probe-group group0
+	option probe-name start 
+	option probe-start true
+	subvolumes my-probe-end
 end-volume
