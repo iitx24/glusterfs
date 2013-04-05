@@ -11,10 +11,45 @@ volume my-probe-end
 	subvolumes my-posix
 end-volume
 
+volume my-probe-mid4
+	type features/probe
+	option probe-group group0
+	option probe-name mid4
+	subvolumes my-probe-end
+end-volume
+
+volume my-probe-mid3
+	type features/probe
+	option probe-group group0
+	option probe-name mid3
+	subvolumes my-probe-mid4
+end-volume
+
+volume my-probe-mid2
+	type features/probe
+	option probe-group group0
+	option probe-name mid2
+	subvolumes my-probe-mid3
+end-volume
+
+volume my-probe-mid1
+	type features/probe
+	option probe-group group0
+	option probe-name mid1
+	subvolumes my-probe-mid2
+end-volume
+
+volume my-probe-mid0
+	type features/probe
+	option probe-group group0
+	option probe-name mid0
+	subvolumes my-probe-mid1
+end-volume
+
 volume my-probe-start
 	type features/probe
 	option probe-group group0
 	option probe-name start 
 	option probe-start true
-	subvolumes my-probe-end
+	subvolumes my-probe-mid0
 end-volume

@@ -30,6 +30,7 @@
  * USE ;) (hence no error-checking)
  */
 
+#if 0
 void
 probe (char *buf, int len)
 {
@@ -51,6 +52,8 @@ probe_iovec (struct iovec *vector, int count)
 	}
 }
 
+#endif
+
 int32_t
 probe_readv_cbk (call_frame_t *frame,
                  void *cookie,
@@ -62,11 +65,13 @@ probe_readv_cbk (call_frame_t *frame,
 		 struct iatt *stbuf,
                  struct iobref *iobref, dict_t *xdata)
 {
-	probe_private_t *priv = (probe_private_t *)this->private;
 
+#if 0
+	probe_private_t *priv = (probe_private_t *)this->private;
 	if (priv->decrypt_read) {
 		probe_iovec (vector, count);
 	}
+#endif
 
 	STACK_UNWIND_STRICT (readv, frame, op_ret, op_errno, vector, count,
                              stbuf, iobref, xdata);
@@ -109,6 +114,8 @@ probe_writev_cbk (call_frame_t *frame,
 			goto xdata_null;
 		}
 		need_unref = 1;
+		gf_log ("probe", GF_LOG_DEBUG, "%s: Dict Allocated",
+				priv->probe_name);
 	}
 
 	current_time = probe_time_gettime();
@@ -119,11 +126,12 @@ probe_writev_cbk (call_frame_t *frame,
 		if (NULL != data) {
 			if (0 == gf_string2uint64(data->data, &dict_time)) {
 				probe_stats_xlator_latency_add(&priv->probe_stats,
+						PROBE_WRITEV_CBK_STATS,
 						probe_time_elapsed(dict_time, current_time));
 				gf_log ("probe", GF_LOG_DEBUG, "%s: %"PRId64"us", 
 						priv->probe_name,
-						priv->probe_stats.xlator_latency.accumulated_time / 
-						priv->probe_stats.xlator_latency.count);
+						probe_stats_xlator_latency(&priv->probe_stats,
+							PROBE_WRITEV_CBK_STATS));
 			}
 		}
 	}
@@ -152,9 +160,11 @@ probe_writev (call_frame_t *frame,
 	probe_time_t dict_time;
 	gf_boolean_t need_unref = 0;
 
+#if 0
 	if (priv->encrypt_write) {
 		probe_iovec (vector, count);
 	}
+#endif
 
 	if (NULL == xdata) {
 		xdata = dict_new();
@@ -162,21 +172,28 @@ probe_writev (call_frame_t *frame,
 			goto xdata_null;
 		}
 		need_unref = 1;
+		gf_log ("probe", GF_LOG_DEBUG, "%s: Dict Allocated",
+				priv->probe_name);
 	}
 
 	current_time = probe_time_gettime();
 	if (priv->probe_start) {
+		probe_time_t t = probe_time_gettime();
 		dict_set(xdata, "probe-start-wind", data_from_uint64(current_time));
+		gf_log ("probe", GF_LOG_DEBUG, "%s: Storing key took %"PRId64"us", 
+				priv->probe_name,
+				t - probe_time_gettime());
 	} else {
 		data = dict_get(xdata, "probe-start-wind");
 		if (NULL != data) {
 			if (0 == gf_string2uint64(data->data, &dict_time)) {
 				probe_stats_xlator_latency_add(&priv->probe_stats,
+						PROBE_WRITEV_STATS,
 						probe_time_elapsed(dict_time, current_time));
 				gf_log ("probe", GF_LOG_DEBUG, "%s: %"PRId64"us", 
 						priv->probe_name,
-						priv->probe_stats.xlator_latency.accumulated_time / 
-						priv->probe_stats.xlator_latency.count);
+						probe_stats_xlator_latency(&priv->probe_stats,
+							PROBE_WRITEV_STATS));
 			}
 		}
 	}
