@@ -64,8 +64,9 @@ probe_readv_cbk (call_frame_t *frame,
 {
 	probe_private_t *priv = (probe_private_t *)this->private;
 
-	if (priv->decrypt_read)
+	if (priv->decrypt_read) {
 		probe_iovec (vector, count);
+	}
 
 	STACK_UNWIND_STRICT (readv, frame, op_ret, op_errno, vector, count,
                              stbuf, iobref, xdata);
@@ -146,6 +147,9 @@ init (xlator_t *this)
 	 */
 	priv->decrypt_read = 1;
 	priv->encrypt_write = 1;
+	priv->probe_start = _gf_false;
+	priv->probe_end = _gf_false;
+	probe_stats_init(&priv->probe_stats);
 
 	/*
 	 * Get options from volfile
@@ -168,6 +172,48 @@ init (xlator_t *this)
 		}
 	}
 
+	data = dict_get (this->options, "probe-start");
+	if (data) {
+		if (gf_string2boolean (data->data, &priv->probe_start) == -1) {
+			gf_log (this->name, GF_LOG_ERROR,
+				"probe_start takes only boolean options");
+			return -1;
+		}
+	}
+
+	data = dict_get (this->options, "probe-end");
+	if (data) {
+		if (gf_string2boolean (data->data, &priv->probe_end) == -1) {
+			gf_log (this->name, GF_LOG_ERROR,
+				"probe_end takes only boolean options");
+			return -1;
+		}
+	}
+
+	data = dict_get (this->options, "interval-secs");
+	if (data) {
+		if (gf_string2int(data->data, &priv->interval_secs) == -1) {
+			gf_log (this->name, GF_LOG_ERROR,
+				"interval_secs takes only int options");
+			return -1;
+		}
+	}
+
+        if (0 != dict_get_str (this->options, "probe-name", &priv->probe_name)) {
+		priv->probe_name = "NONAME";
+        }
+	gf_log ("probe", GF_LOG_DEBUG, "probe-name is %s", priv->probe_name);
+
+        if (0 != dict_get_str (this->options, "probe-group", &priv->probe_group)){
+		priv->probe_group = "NOGROUP";
+        }
+	gf_log ("probe", GF_LOG_DEBUG, "probe-group is %s", priv->probe_group);
+
+        if (0 != dict_get_str (this->options, "directory", &priv->directory)) {
+		priv->directory = "/tmp";
+        }
+	gf_log ("probe", GF_LOG_DEBUG, "directory is %s", priv->directory);
+
 	/*
 	 * Save private state 
 	 */
@@ -184,6 +230,11 @@ void
 fini (xlator_t *this)
 {
 	probe_private_t *priv = this->private;
+
+	/*
+	 * Destroy stats object first
+	 */
+	probe_stats_destroy(&priv->probe_stats);
 
 	/*
 	 * Destroy private state
@@ -225,7 +276,10 @@ struct volume_options options[] = {
 	{ .key  = {"probe-end"},
 	  .type = GF_OPTION_TYPE_BOOL
 	},
-	{ .key = {"name"},
+	{ .key = {"probe-name"},
+	  .type = GF_OPTION_TYPE_STR
+	},
+	{ .key = {"probe-group"},
 	  .type = GF_OPTION_TYPE_STR
 	},
 	{ .key = {"directory"},

@@ -24,5 +24,8 @@ typedef struct {
 	probe_stats_time_accumulator_t xlator_latency;
 } probe_stats_t;
 
+int probe_stats_init( probe_stats_t *probe_stats );
+int probe_stats_destroy( probe_stats_t *probe_stats );
+int probe_stats_xlator_latency_add( probe_stats_t *probe_stats, probe_usec_t usec_time );
 
 #endif /* __PROBE_STATUS_H__ */
