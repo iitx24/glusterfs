@@ -44,7 +44,7 @@ probe_stats_xlator_latency_add( probe_stats_t *probe_stats,
 	/* assert here */
 	probe_stats_type_info_t *stats;
 	
-	stats = &probe_stats[ stats_type ];
+	stats = &probe_stats->ops_stats[ stats_type ];
 	stats->xlator_latency.accumulated_time += usec_time;
 	stats->xlator_latency.count++;
 
@@ -58,8 +58,12 @@ probe_stats_xlator_latency( probe_stats_t *probe_stats,
 	/* assert here */
 	probe_stats_type_info_t *stats;
 	
-	stats = &probe_stats[ stats_type ];
+	stats = &probe_stats->ops_stats[ stats_type ];
 
-	return stats->xlator_latency.accumulated_time / stats->xlator_latency.count;
+	if (0 != stats->xlator_latency.count) {
+		return stats->xlator_latency.accumulated_time / stats->xlator_latency.count;
+	} else {
+		return 0;
+	}
 }
 

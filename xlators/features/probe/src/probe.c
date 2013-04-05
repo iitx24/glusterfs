@@ -18,41 +18,12 @@
 #include "glusterfs.h"
 #include "xlator.h"
 #include "logging.h"
+#include "statedump.h"
 
 #include "probe_time.h"
 #include "probe_stats.h"
 #include "probe.h"
 
-/*
- * This is a probe ``encryption'' xlator. It probe's data when
- * writing to disk and probe's it back when reading it.
- * This xlator is meant as an example, NOT FOR PRODUCTION
- * USE ;) (hence no error-checking)
- */
-
-#if 0
-void
-probe (char *buf, int len)
-{
-	int i;
-	for (i = 0; i < len; i++) {
-		if (buf[i] >= 'a' && buf[i] <= 'z')
-			buf[i] = 'a' + ((buf[i] - 'a' + 13) % 26);
-		else if (buf[i] >= 'A' && buf[i] <= 'Z')
-			buf[i] = 'A' + ((buf[i] - 'A' + 13) % 26);
-	}
-}
-
-void
-probe_iovec (struct iovec *vector, int count)
-{
-	int i;
-	for (i = 0; i < count; i++) {
-		probe (vector[i].iov_base, vector[i].iov_len);
-	}
-}
-
-#endif
 
 int32_t
 probe_readv_cbk (call_frame_t *frame,
@@ -66,12 +37,6 @@ probe_readv_cbk (call_frame_t *frame,
                  struct iobref *iobref, dict_t *xdata)
 {
 
-#if 0
-	probe_private_t *priv = (probe_private_t *)this->private;
-	if (priv->decrypt_read) {
-		probe_iovec (vector, count);
-	}
-#endif
 
 	STACK_UNWIND_STRICT (readv, frame, op_ret, op_errno, vector, count,
                              stbuf, iobref, xdata);
@@ -114,8 +79,6 @@ probe_writev_cbk (call_frame_t *frame,
 			goto xdata_null;
 		}
 		need_unref = 1;
-		gf_log ("probe", GF_LOG_DEBUG, "%s: Dict Allocated",
-				priv->probe_name);
 	}
 
 	current_time = probe_time_gettime();
@@ -128,10 +91,6 @@ probe_writev_cbk (call_frame_t *frame,
 				probe_stats_xlator_latency_add(&priv->probe_stats,
 						PROBE_WRITEV_CBK_STATS,
 						probe_time_elapsed(dict_time, current_time));
-				gf_log ("probe", GF_LOG_DEBUG, "%s: %"PRId64"us", 
-						priv->probe_name,
-						probe_stats_xlator_latency(&priv->probe_stats,
-							PROBE_WRITEV_CBK_STATS));
 			}
 		}
 	}
@@ -160,29 +119,17 @@ probe_writev (call_frame_t *frame,
 	probe_time_t dict_time;
 	gf_boolean_t need_unref = 0;
 
-#if 0
-	if (priv->encrypt_write) {
-		probe_iovec (vector, count);
-	}
-#endif
-
 	if (NULL == xdata) {
 		xdata = dict_new();
 		if (NULL == xdata) {
 			goto xdata_null;
 		}
 		need_unref = 1;
-		gf_log ("probe", GF_LOG_DEBUG, "%s: Dict Allocated",
-				priv->probe_name);
 	}
 
 	current_time = probe_time_gettime();
 	if (priv->probe_start) {
-		probe_time_t t = probe_time_gettime();
 		dict_set(xdata, "probe-start-wind", data_from_uint64(current_time));
-		gf_log ("probe", GF_LOG_DEBUG, "%s: Storing key took %"PRId64"us", 
-				priv->probe_name,
-				t - probe_time_gettime());
 	} else {
 		data = dict_get(xdata, "probe-start-wind");
 		if (NULL != data) {
@@ -190,10 +137,6 @@ probe_writev (call_frame_t *frame,
 				probe_stats_xlator_latency_add(&priv->probe_stats,
 						PROBE_WRITEV_STATS,
 						probe_time_elapsed(dict_time, current_time));
-				gf_log ("probe", GF_LOG_DEBUG, "%s: %"PRId64"us", 
-						priv->probe_name,
-						probe_stats_xlator_latency(&priv->probe_stats,
-							PROBE_WRITEV_STATS));
 			}
 		}
 	}
@@ -233,8 +176,6 @@ init (xlator_t *this)
 	/*
 	 * Initialize private data to default values
 	 */
-	priv->decrypt_read = 1;
-	priv->encrypt_write = 1;
 	priv->probe_start = _gf_false;
 	priv->probe_end = _gf_false;
 	probe_stats_init(&priv->probe_stats);
@@ -242,24 +183,6 @@ init (xlator_t *this)
 	/*
 	 * Get options from volfile
 	 */
-	data = dict_get (this->options, "encrypt-write");
-	if (data) {
-		if (gf_string2boolean (data->data, &priv->encrypt_write) == -1) {
-			gf_log (this->name, GF_LOG_ERROR,
-				"encrypt-write takes only boolean options");
-			return -1;
-		}
-	}
-
-	data = dict_get (this->options, "decrypt-read");
-	if (data) {
-		if (gf_string2boolean (data->data, &priv->decrypt_read) == -1) {
-			gf_log (this->name, GF_LOG_ERROR,
-				"decrypt-read takes only boolean options");
-			return -1;
-		}
-	}
-
 	data = dict_get (this->options, "probe-start");
 	if (data) {
 		if (gf_string2boolean (data->data, &priv->probe_start) == -1) {
@@ -319,6 +242,18 @@ fini (xlator_t *this)
 {
 	probe_private_t *priv = this->private;
 
+#if 0
+	gf_log ("probe", GF_LOG_DEBUG, "%s: %"PRId64"us", 
+			priv->probe_name,
+			probe_stats_xlator_latency(&priv->probe_stats,
+				PROBE_WRITEV_CBK_STATS));
+
+	gf_log ("probe", GF_LOG_DEBUG, "%s: %"PRId64"us", 
+			priv->probe_name,
+			probe_stats_xlator_latency(&priv->probe_stats,
+				PROBE_WRITEV_STATS));
+#endif
+
 	/*
 	 * Destroy stats object first
 	 */
@@ -334,6 +269,43 @@ fini (xlator_t *this)
 
 	return;
 }
+
+int32_t
+probe_priv (xlator_t *this)
+{
+        probe_private_t *priv = NULL;
+        char  buf[GF_DUMP_MAX_BUF_LEN];
+
+	if (NULL == this) {
+		goto exit;
+	}
+        priv = this->private;
+	if (NULL == priv) {
+		goto exit;
+	}
+
+        snprintf(buf, GF_DUMP_MAX_BUF_LEN, "%s.%s.%s.%s", 
+			this->type,
+                 	this->name,
+			priv->probe_group,
+			priv->probe_name);
+        gf_proc_dump_add_section(buf);
+
+	gf_proc_dump_write("writev_latency", "%"PRIu64"us", 
+			probe_stats_xlator_latency(&priv->probe_stats, PROBE_WRITEV_STATS));
+	gf_proc_dump_write("writev_cbk_latency", "%"PRIu64"us", 
+			probe_stats_xlator_latency(&priv->probe_stats, PROBE_WRITEV_CBK_STATS));
+
+exit:
+	return 0;
+}
+
+/*
+ * Dump information 
+ */
+struct xlator_dumpops dumpops = {
+        .priv    = probe_priv
+};
 
 /*
  * Set methods handled by this translator
@@ -352,12 +324,6 @@ struct xlator_cbks cbks;
  * Volfile options
  */
 struct volume_options options[] = {
-	{ .key  = {"encrypt-write"},
-	  .type = GF_OPTION_TYPE_BOOL
-	},
-	{ .key  = {"decrypt-read"},
-	  .type = GF_OPTION_TYPE_BOOL
-	},
 	{ .key  = {"probe-start"},
 	  .type = GF_OPTION_TYPE_BOOL
 	},
