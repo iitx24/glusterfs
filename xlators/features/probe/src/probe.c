@@ -67,10 +67,7 @@ probe_writev_cbk (call_frame_t *frame,
                   struct iatt *prebuf,
 		  struct iatt *postbuf, dict_t *xdata)
 {
-	data_t *data = NULL;
 	probe_private_t *priv = (probe_private_t *)this->private;
-	probe_time_t current_time;
-	probe_time_t dict_time;
 	gf_boolean_t need_unref = 0;
 
 	if (NULL == xdata) {
@@ -81,19 +78,9 @@ probe_writev_cbk (call_frame_t *frame,
 		need_unref = 1;
 	}
 
-	current_time = probe_time_gettime();
-	if (priv->probe_end) {
-		dict_set(xdata, "probe-start-unwind", data_from_uint64(current_time));
-	} else {
-		data = dict_get(xdata, "probe-start-unwind");
-		if (NULL != data) {
-			if (0 == gf_string2uint64(data->data, &dict_time)) {
-				probe_stats_xlator_latency_add(&priv->probe_stats,
-						PROBE_WRITEV_CBK_STATS,
-						probe_time_elapsed(dict_time, current_time));
-			}
-		}
-	}
+	probe_stats_time_accumulator_sample(&priv->probe_stats.write_cbk_stats.latency,
+			xdata,
+			"probe-unwind");
 
 xdata_null:
 	STACK_UNWIND_STRICT (writev, frame, op_ret, op_errno, prebuf, postbuf,
@@ -113,10 +100,7 @@ probe_writev (call_frame_t *frame,
               off_t offset, uint32_t flags,
               struct iobref *iobref, dict_t *xdata)
 {
-	data_t *data = NULL;
 	probe_private_t *priv = (probe_private_t *)this->private;
-	probe_time_t current_time;
-	probe_time_t dict_time;
 	gf_boolean_t need_unref = 0;
 
 	if (NULL == xdata) {
@@ -127,19 +111,9 @@ probe_writev (call_frame_t *frame,
 		need_unref = 1;
 	}
 
-	current_time = probe_time_gettime();
-	if (priv->probe_start) {
-		dict_set(xdata, "probe-start-wind", data_from_uint64(current_time));
-	} else {
-		data = dict_get(xdata, "probe-start-wind");
-		if (NULL != data) {
-			if (0 == gf_string2uint64(data->data, &dict_time)) {
-				probe_stats_xlator_latency_add(&priv->probe_stats,
-						PROBE_WRITEV_STATS,
-						probe_time_elapsed(dict_time, current_time));
-			}
-		}
-	}
+	probe_stats_time_accumulator_sample(&priv->probe_stats.write_stats.latency,
+			xdata,
+			"probe-wind");
 
 xdata_null:
 	STACK_WIND (frame,
@@ -158,7 +132,6 @@ xdata_null:
 int32_t
 init (xlator_t *this)
 {
-	data_t *data = NULL;
 	probe_private_t *priv = NULL;
 
 	/*
@@ -183,33 +156,6 @@ init (xlator_t *this)
 	/*
 	 * Get options from volfile
 	 */
-	data = dict_get (this->options, "probe-start");
-	if (data) {
-		if (gf_string2boolean (data->data, &priv->probe_start) == -1) {
-			gf_log (this->name, GF_LOG_ERROR,
-				"probe_start takes only boolean options");
-			return -1;
-		}
-	}
-
-	data = dict_get (this->options, "probe-end");
-	if (data) {
-		if (gf_string2boolean (data->data, &priv->probe_end) == -1) {
-			gf_log (this->name, GF_LOG_ERROR,
-				"probe_end takes only boolean options");
-			return -1;
-		}
-	}
-
-	data = dict_get (this->options, "interval-secs");
-	if (data) {
-		if (gf_string2int(data->data, &priv->interval_secs) == -1) {
-			gf_log (this->name, GF_LOG_ERROR,
-				"interval_secs takes only int options");
-			return -1;
-		}
-	}
-
         if (0 != dict_get_str (this->options, "probe-name", &priv->probe_name)) {
 		priv->probe_name = "NONAME";
         }
@@ -219,11 +165,6 @@ init (xlator_t *this)
 		priv->probe_group = "NOGROUP";
         }
 	gf_log ("probe", GF_LOG_DEBUG, "probe-group is %s", priv->probe_group);
-
-        if (0 != dict_get_str (this->options, "directory", &priv->directory)) {
-		priv->directory = "/tmp";
-        }
-	gf_log ("probe", GF_LOG_DEBUG, "directory is %s", priv->directory);
 
 	/*
 	 * Save private state 
@@ -292,9 +233,9 @@ probe_priv (xlator_t *this)
         gf_proc_dump_add_section(buf);
 
 	gf_proc_dump_write("writev_latency", "%"PRIu64"us", 
-			probe_stats_xlator_latency(&priv->probe_stats, PROBE_WRITEV_STATS));
+			probe_stats_time_accumulator_latency(&priv->probe_stats.write_stats.latency));
 	gf_proc_dump_write("writev_cbk_latency", "%"PRIu64"us", 
-			probe_stats_xlator_latency(&priv->probe_stats, PROBE_WRITEV_CBK_STATS));
+			probe_stats_time_accumulator_latency(&priv->probe_stats.write_cbk_stats.latency));
 
 exit:
 	return 0;
@@ -324,23 +265,11 @@ struct xlator_cbks cbks;
  * Volfile options
  */
 struct volume_options options[] = {
-	{ .key  = {"probe-start"},
-	  .type = GF_OPTION_TYPE_BOOL
-	},
-	{ .key  = {"probe-end"},
-	  .type = GF_OPTION_TYPE_BOOL
-	},
 	{ .key = {"probe-name"},
 	  .type = GF_OPTION_TYPE_STR
 	},
 	{ .key = {"probe-group"},
 	  .type = GF_OPTION_TYPE_STR
-	},
-	{ .key = {"directory"},
-	  .type = GF_OPTION_TYPE_STR
-	},
-	{ .key = {"interval-secs"},
-	  .type = GF_OPTION_TYPE_INT
 	},
 	{ .key  = {NULL} },
 };

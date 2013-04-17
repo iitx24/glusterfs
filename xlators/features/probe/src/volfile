@@ -1,6 +1,6 @@
 volume my-posix
 	type storage/posix
-	option directory /home/lpabon/git/glusterfs.git/BRICK
+	option directory /home/lpabon/git/glusterfs.git/ROOT/brick
 end-volume
 
 volume my-probe-end
