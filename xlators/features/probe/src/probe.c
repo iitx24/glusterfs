@@ -78,7 +78,7 @@ probe_writev_cbk (call_frame_t *frame,
 		need_unref = 1;
 	}
 
-	probe_stats_time_accumulator_sample(&priv->probe_stats.write_cbk_stats.latency,
+	probe_time_accumulator_record(&priv->probe_stats.write_cbk_stats.latency,
 			xdata,
 			"probe-unwind");
 
@@ -111,7 +111,7 @@ probe_writev (call_frame_t *frame,
 		need_unref = 1;
 	}
 
-	probe_stats_time_accumulator_sample(&priv->probe_stats.write_stats.latency,
+	probe_time_accumulator_record(&priv->probe_stats.write_stats.latency,
 			xdata,
 			"probe-wind");
 
@@ -183,18 +183,6 @@ fini (xlator_t *this)
 {
 	probe_private_t *priv = this->private;
 
-#if 0
-	gf_log ("probe", GF_LOG_DEBUG, "%s: %"PRId64"us", 
-			priv->probe_name,
-			probe_stats_xlator_latency(&priv->probe_stats,
-				PROBE_WRITEV_CBK_STATS));
-
-	gf_log ("probe", GF_LOG_DEBUG, "%s: %"PRId64"us", 
-			priv->probe_name,
-			probe_stats_xlator_latency(&priv->probe_stats,
-				PROBE_WRITEV_STATS));
-#endif
-
 	/*
 	 * Destroy stats object first
 	 */
@@ -233,9 +221,9 @@ probe_priv (xlator_t *this)
         gf_proc_dump_add_section(buf);
 
 	gf_proc_dump_write("writev_latency", "%"PRIu64"us", 
-			probe_stats_time_accumulator_latency(&priv->probe_stats.write_stats.latency));
+			probe_time_accumulator_latency(&priv->probe_stats.write_stats.latency));
 	gf_proc_dump_write("writev_cbk_latency", "%"PRIu64"us", 
-			probe_stats_time_accumulator_latency(&priv->probe_stats.write_cbk_stats.latency));
+			probe_time_accumulator_latency(&priv->probe_stats.write_cbk_stats.latency));
 
 exit:
 	return 0;
