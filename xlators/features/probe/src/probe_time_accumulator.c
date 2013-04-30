@@ -46,31 +46,6 @@ probe_time_accumulator_add( probe_time_accumulator_t *self,
 	return 0;
 }
 
-int32_t 
-probe_time_accumulator_record( probe_time_accumulator_t *self,
-		dict_t *xdata,
-		char *dict_key)
-{
-	data_t *data = NULL;
-	probe_time_t current_time;
-	probe_time_t dict_time;
-
-	if (NULL == xdata) {
-		goto xdata_null;
-	}
-
-	current_time = probe_time_gettime();
-	data = dict_get(xdata, dict_key);
-	if (NULL == data) {
-		dict_set(xdata, dict_key, data_from_uint64(current_time));
-	} else if (0 == gf_string2uint64(data->data, &dict_time)) {
-			probe_time_accumulator_add(self,
-					probe_time_elapsed(dict_time, current_time));
-	}
-
-xdata_null:
-	return 0;
-}
 
 probe_time_t
 probe_time_accumulator_latency( probe_time_accumulator_t *self)

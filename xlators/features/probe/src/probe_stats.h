@@ -19,18 +19,24 @@
 
 typedef struct {
 	probe_time_accumulator_t latency;
-} probe_write_stats_t;
-
-typedef struct {
-	probe_time_accumulator_t latency;
-} probe_write_cbk_stats_t;
-
-typedef struct {
-	probe_write_stats_t write_stats;
-	probe_write_cbk_stats_t write_cbk_stats;
+	char *stat_name;
+	char *probe_dict_key;
 } probe_stats_t;
+	
+/*
+ * Example of a new type of stats
+ *
+typdef struct {
+	probe_stats_t super;
+	int other_data;
+} probe_new_stats_t;
+*/
 
-int probe_stats_init( probe_stats_t *probe_stats );
-int probe_stats_destroy( probe_stats_t *probe_stats );
+int32_t probe_stats_init( probe_stats_t *self,
+		const char *stat_name,
+		const char *probe_dict_key );
+int probe_stats_destroy( probe_stats_t *self );
+int32_t probe_stats_dump_write( probe_stats_t *self );
+int32_t probe_stats_record_time( probe_stats_t *self, dict_t *xdata);
 
 #endif /* __PROBE_STATUS_H__ */

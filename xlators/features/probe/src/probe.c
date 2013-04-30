@@ -1,5 +1,5 @@
 /*
-   Copyright (c) 2006-2012 Red Hat, Inc. <http://www.redhat.com>
+   Copyright (c) 2006-2013 Red Hat, Inc. <http://www.redhat.com>
    This file is part of GlusterFS.
 
    This file is licensed to you under your choice of the GNU Lesser
@@ -78,9 +78,7 @@ probe_writev_cbk (call_frame_t *frame,
 		need_unref = 1;
 	}
 
-	probe_time_accumulator_record(&priv->probe_stats.write_cbk_stats.latency,
-			xdata,
-			"probe-unwind");
+	probe_stats_record_time(&priv->write_cbk_stats, xdata);
 
 xdata_null:
 	STACK_UNWIND_STRICT (writev, frame, op_ret, op_errno, prebuf, postbuf,
@@ -111,9 +109,7 @@ probe_writev (call_frame_t *frame,
 		need_unref = 1;
 	}
 
-	probe_time_accumulator_record(&priv->probe_stats.write_stats.latency,
-			xdata,
-			"probe-wind");
+	probe_stats_record_time(&priv->write_stats, xdata);
 
 xdata_null:
 	STACK_WIND (frame,
@@ -147,13 +143,6 @@ init (xlator_t *this)
 	}
 
 	/*
-	 * Initialize private data to default values
-	 */
-	priv->probe_start = _gf_false;
-	priv->probe_end = _gf_false;
-	probe_stats_init(&priv->probe_stats);
-
-	/*
 	 * Get options from volfile
 	 */
         if (0 != dict_get_str (this->options, "probe-name", &priv->probe_name)) {
@@ -165,6 +154,16 @@ init (xlator_t *this)
 		priv->probe_group = "NOGROUP";
         }
 	gf_log ("probe", GF_LOG_DEBUG, "probe-group is %s", priv->probe_group);
+
+	/*
+	 * Initialize probes
+	 *
+	 * XXX Need to incorporate group and name
+	 */
+	probe_stats_init(&priv->write_stats, "write", "probe-write-wind");
+	probe_stats_init(&priv->read_stats, "read", "probe-write-unwind");
+	probe_stats_init(&priv->write_cbk_stats, "write_callback", "probe-read-wind");
+	probe_stats_init(&priv->read_cbk_stats, "read_callback", "probe-read-unwind");
 
 	/*
 	 * Save private state 
@@ -186,7 +185,10 @@ fini (xlator_t *this)
 	/*
 	 * Destroy stats object first
 	 */
-	probe_stats_destroy(&priv->probe_stats);
+	probe_stats_destroy(&priv->write_stats);
+	probe_stats_destroy(&priv->read_stats);
+	probe_stats_destroy(&priv->write_cbk_stats);
+	probe_stats_destroy(&priv->read_cbk_stats);
 
 	/*
 	 * Destroy private state
@@ -220,10 +222,8 @@ probe_priv (xlator_t *this)
 			priv->probe_name);
         gf_proc_dump_add_section(buf);
 
-	gf_proc_dump_write("writev_latency", "%"PRIu64"us", 
-			probe_time_accumulator_latency(&priv->probe_stats.write_stats.latency));
-	gf_proc_dump_write("writev_cbk_latency", "%"PRIu64"us", 
-			probe_time_accumulator_latency(&priv->probe_stats.write_cbk_stats.latency));
+	probe_stats_dump_write(&priv->write_stats);
+	probe_stats_dump_write(&priv->write_cbk_stats);
 
 exit:
 	return 0;
@@ -245,7 +245,7 @@ struct xlator_fops fops = {
 };
 
 /*
- * Still a mistery 
+ * Still a mystery
  */
 struct xlator_cbks cbks;
 

@@ -20,10 +20,6 @@ typedef struct {
 	uint64_t count;
 } probe_time_accumulator_t;
 
-int32_t 
-probe_time_accumulator_record( probe_time_accumulator_t *self,
-		dict_t *xdata,
-		char *dict_key);
 probe_time_t
 probe_time_accumulator_latency( probe_time_accumulator_t *self);
 
