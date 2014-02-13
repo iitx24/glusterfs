@@ -613,6 +613,7 @@ case $host_os in
         CFLAGS="${CFLAGS} -D_INCOMPLETE_XOPEN_C063"
         ;;
 esac
+if echo ${CFLAGS} | grep NDEBUG ; then exit 0 ; fi
 AC_CHECK_FUNC([linkat], [have_linkat=yes])
 if test "x${have_linkat}" = "xyes"; then
    AC_DEFINE(HAVE_LINKAT, 1, [define if found linkat])
@@ -622,9 +623,22 @@ AC_SUBST(HAVE_LINKAT)
 dnl check for Monotonic clock
 AC_CHECK_FUNC([clock_gettime], [has_monotonic_clock=yes], AC_CHECK_LIB([rt], [clock_gettime], , AC_MSG_WARN([System doesn't have monotonic clock using contrib])))
 
+dnl Add cmockery2 for unit testing
+AC_CONFIG_SUBDIRS([cmockery2])
+UNITTEST_CFLAGS='-g -Wall -DUNIT_TESTING -DDEBUG -Werror -O0 --coverage'
+UNITTEST_CPPFLAGS='-I$(top_srcdir)/cmockery2/src'
+UNITTEST_LDADD='$(top_srcdir)/cmockery2/libcmockery.la'
+UNITTEST_LDFLAGS=-lgcov
+CFLAGS="$CFLAGS ${UNITTEST_CPPFLAGS}"
+AC_SUBST(UNITTEST_CFLAGS)
+AC_SUBST(UNITTEST_CPPFLAGS)
+AC_SUBST(UNITTEST_LDADD)
+AC_SUBST(UNITTEST_LDFLAGS)
+
 dnl Check for argp
 AC_CHECK_HEADER([argp.h], AC_DEFINE(HAVE_ARGP, 1, [have argp]))
 AC_CONFIG_SUBDIRS(argp-standalone)
+
 
 BUILD_ARGP_STANDALONE=no
 if test "x${ac_cv_header_argp_h}" = "xno"; then
@@ -692,6 +706,7 @@ if test "x$cc_werror_format_security" = "xno"; then
 else
     CFLAGS="$saved_CFLAGS $CFLAGS"
 fi
+if echo ${CFLAGS} | grep NDEBUG ; then exit 0 ; fi
 
 # check for gcc -Werror=implicit-function-declaration
 saved_CFLAGS=$CFLAGS
@@ -704,6 +719,7 @@ if test "x$cc_werror_implicit" = "xno"; then
 else
     CFLAGS="$saved_CFLAGS $CFLAGS"
 fi
+if echo ${CFLAGS} | grep NDEBUG ; then exit 0 ; fi
 
 case $host_os in
      linux*)
@@ -871,6 +887,7 @@ if test "x$BUILD_GLUPY" = "xyes"; then
    AC_SUBST(GLUPY_SUBDIR_SRC_MAKEFILE)
 fi
 # end glupy section
+if echo ${CFLAGS} | grep NDEBUG ; then exit 0 ; fi
 
 AC_SUBST(CFLAGS)
 # end enable debug section

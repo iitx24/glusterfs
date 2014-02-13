@@ -106,8 +106,12 @@ $AUTOCONF
 echo Running ${AUTOMAKE}...
 $AUTOMAKE --add-missing --copy --foreign
 
+# Update git modules
+git submodule update --init cmockery2
+
 # Run autogen in the argp-standalone sub-directory
-cd argp-standalone;./autogen.sh
+( cd argp-standalone;./autogen.sh )
+( cd cmockery2; ./autogen.sh )
 
 # Instruct user on next steps
 echo
