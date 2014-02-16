@@ -169,6 +169,46 @@ out:
 	return ret;
 }
 
+int
+syncopctx_setfspid (void *pid)
+{
+	struct syncopctx *opctx = NULL;
+	int               ret = 0;
+
+	/* In args check */
+	if (!pid) {
+		ret = -1;
+		errno = EINVAL;
+		goto out;
+	}
+
+	opctx = syncopctx_getctx ();
+
+	/* alloc for this thread the first time */
+	if (!opctx) {
+		opctx = GF_CALLOC (1, sizeof (*opctx), gf_common_mt_syncopctx);
+		if (!opctx) {
+			ret = -1;
+			goto out;
+		}
+
+		ret = syncopctx_setctx (opctx);
+		if (ret != 0) {
+			GF_FREE (opctx);
+			opctx = NULL;
+			goto out;
+		}
+	}
+
+out:
+	if (opctx && pid) {
+		opctx->pid = *(pid_t *)pid;
+		opctx->valid |= SYNCOPCTX_PID;
+	}
+
+	return ret;
+}
+
 static void
 __run (struct synctask *task)
 {
@@ -1208,12 +1248,12 @@ syncop_removexattr_cbk (call_frame_t *frame, void *cookie, xlator_t *this,
 }
 
 int
-syncop_removexattr (xlator_t *subvol, loc_t *loc, const char *name)
+syncop_removexattr (xlator_t *subvol, loc_t *loc, const char *name, dict_t *xdata)
 {
         struct syncargs args = {0, };
 
         SYNCOP (subvol, (&args), syncop_removexattr_cbk, subvol->fops->removexattr,
-                loc, name, NULL);
+                loc, name, xdata);
 
         if (args.op_ret < 0)
                 return -args.op_errno;
@@ -1237,12 +1277,12 @@ syncop_fremovexattr_cbk (call_frame_t *frame, void *cookie, xlator_t *this,
 }
 
 int
-syncop_fremovexattr (xlator_t *subvol, fd_t *fd, const char *name)
+syncop_fremovexattr (xlator_t *subvol, fd_t *fd, const char *name, dict_t *xdata)
 {
         struct syncargs args = {0, };
 
         SYNCOP (subvol, (&args), syncop_fremovexattr_cbk,
-                subvol->fops->fremovexattr, fd, name, NULL);
+                subvol->fops->fremovexattr, fd, name, xdata);
 
         if (args.op_ret < 0)
                 return -args.op_errno;
