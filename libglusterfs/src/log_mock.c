@@ -1,3 +1,12 @@
+/*
+  Copyright (c) 2008-2014 Red Hat, Inc. <http://www.redhat.com>
+  This file is part of GlusterFS.
+
+  This file is licensed to you under your choice of the GNU Lesser
+  General Public License, version 3 or any later version (LGPLv3 or
+  later), or the GNU General Public License, version 2 (GPLv2), in all
+  cases as published by the Free Software Foundation.
+*/
 
 #include "logging.h"
 #include "xlator.h"
@@ -29,5 +38,8 @@ int _gf_log_nomem (const char *domain, const char *file,
 {
     return 0;
 }
+
+void
+gf_log_globals_init (void *data) {}
 
 xlator_t **__glusterfs_this_location () { return NULL; }

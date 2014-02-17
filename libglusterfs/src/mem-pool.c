@@ -54,15 +54,17 @@ gf_mem_acct_enable_set (void *data)
         return;
 }
 
-void
+int
 gf_mem_set_acct_info (xlator_t *xl, char **alloc_ptr,
                       size_t size, uint32_t type)
 {
 
         char    *ptr = NULL;
 
+        REQUIRE(size > (GF_MEM_HEADER_SIZE + GF_MEM_TRAILER_SIZE));
+
         if (!alloc_ptr)
-                return;
+                return -1;
 
         ptr = (char *) (*alloc_ptr);
 
@@ -98,7 +100,7 @@ gf_mem_set_acct_info (xlator_t *xl, char **alloc_ptr,
         *(uint32_t *) (ptr + size) = GF_MEM_TRAILER_MAGIC;
 
         *alloc_ptr = (void *)ptr;
-        return;
+        return 0;
 }
 
 
