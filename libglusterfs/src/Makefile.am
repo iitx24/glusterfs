@@ -56,13 +56,28 @@ y.tab.h: graph.y
 CLEANFILES = graph.lex.c y.tab.c y.tab.h
 CONFIG_CLEAN_FILES = $(CONTRIB_BUILDDIR)/uuid/uuid_types.h
 
-noinst_PROGRAMS = xxx_unittest
+#### UNIT TESTS #####
+noinst_PROGRAMS =
+TESTS =
+
 xxx_unittest_CPPFLAGS = $(UNITTEST_CPPFLAGS) $(libglusterfs_la_CPPFLAGS)
 xxx_unittest_SOURCES = xxx_unittest.c
 xxx_unittest_CFLAGS = $(UNITTEST_CFLAGS)
 xxx_unittest_LDADD = $(UNITTEST_LDADD)
 xxx_unittest_LDFLAGS = $(UNITTEST_LDFLAGS)
-TESTS = xxx_unittest
+noinst_PROGRAMS += xxx_unittest
+TESTS += xxx_unittest
+
+mem_pool_unittest_CPPFLAGS = $(UNITTEST_CPPFLAGS) $(libglusterfs_la_CPPFLAGS)
+mem_pool_unittest_SOURCES = mem-pool.c \
+							mem-pool.h \
+							mem_pool_unittest.c \
+							log_mock.c
+mem_pool_unittest_CFLAGS = $(UNITTEST_CFLAGS)
+mem_pool_unittest_LDADD = $(UNITTEST_LDADD)
+mem_pool_unittest_LDFLAGS = $(UNITTEST_LDFLAGS)
+noinst_PROGRAMS += mem_pool_unittest
+TESTS += mem_pool_unittest
 
 #noinst_PROGRAMS = dict_unittest
 #dict_unittest_CPPFLAGS = $(UNITTEST_CPPFLAGS) $(libglusterfs_la_CPPFLAGS)
