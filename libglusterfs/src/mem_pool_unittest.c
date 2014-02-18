@@ -90,20 +90,12 @@ test_gf_mem_acct_enable_set(void **state)
 }
 
 static void 
-test_gf_mem_set_acct_info (void **state)
+test_gf_mem_set_acct_info_asserts(void **state)
 {
     xlator_t *xl;
     char *alloc_ptr;
     size_t size;
     uint32_t type;
-
-    typedef struct {
-        uint32_t type;
-        size_t size;
-        xlator_t *xl;
-        uint32_t header_magic;
-        uint32_t pad[2];
-    } mem_header_t;
 
     xl = (xlator_t *)0xBADD;
     alloc_ptr = (char *)0xBADD;
@@ -122,45 +114,71 @@ test_gf_mem_set_acct_info (void **state)
 
     // Test number of types
     type = 100;
-    xl->mem_acct.num_types = 1;
     assert_true(NULL != xl->mem_acct.rec);
     assert_true(type > xl->mem_acct.num_types);
     expect_assert_failure(gf_mem_set_acct_info(xl, &alloc_ptr, size, type)); 
 
+    helper_xlator_destroy(xl);
+}
+
+static void 
+test_gf_mem_set_acct_info_memory(void **state)
+{
+    xlator_t *xl;
+    char *alloc_ptr;
+    char *temp_ptr;
+    size_t size;
+    uint32_t type;
+
+    typedef struct __attribute__((packed)) {
+        uint32_t type;
+        size_t size;
+        xlator_t *xl;
+        uint32_t header_magic;
+        uint8_t pad[8];
+    } mem_header_t;
+
+    size = 8196;
+    type = 9;
+
+    // Initialize xl
+    xl = helper_xlator_init(10);
+
     // Test allocation
-    type = 1;
-    alloc_ptr = test_calloc(1, size + GF_MEM_HEADER_SIZE + GF_MEM_TRAILER_SIZE);
-    assert_non_null(alloc_ptr);
+    temp_ptr = test_calloc(1, size + GF_MEM_HEADER_SIZE + GF_MEM_TRAILER_SIZE);
+    assert_non_null(temp_ptr);
+    alloc_ptr = temp_ptr;
     gf_mem_set_acct_info(xl, &alloc_ptr, size, type);
 
     //Check values
-    assert_int_equal(xl->mem_acct.rec[1].size, size);
-    assert_int_equal(xl->mem_acct.rec[1].num_allocs, 1);
-    assert_int_equal(xl->mem_acct.rec[1].total_allocs, 1);
-    assert_int_equal(xl->mem_acct.rec[1].max_size, size);
-    assert_int_equal(xl->mem_acct.rec[1].max_num_allocs, 1);
+    assert_int_equal(xl->mem_acct.rec[type].size, size);
+    assert_int_equal(xl->mem_acct.rec[type].num_allocs, 1);
+    assert_int_equal(xl->mem_acct.rec[type].total_allocs, 1);
+    assert_int_equal(xl->mem_acct.rec[type].max_size, size);
+    assert_int_equal(xl->mem_acct.rec[type].max_num_allocs, 1);
 
     // Check memory
     {
         mem_header_t *p;
 
-        p = (mem_header_t *)alloc_ptr;
+        p = (mem_header_t *)temp_ptr;
         assert_int_equal(p->type, type);
-     //   assert_int_equal(p->size, size);
-     //   assert_true(p->xl == xl);
-     //   assert_int_equal(p->header_magic, GF_MEM_HEADER_MAGIC); 
-//        assert_true(*(uint32_t *)(alloc_ptr+sizeof(mem_header_t)+size) == GF_MEM_TRAILER_MAGIC);
+        assert_int_equal(p->size, size);
+        assert_true(p->xl == xl);
+        assert_int_equal(p->header_magic, GF_MEM_HEADER_MAGIC); 
+        assert_true(*(uint32_t *)(temp_ptr+sizeof(mem_header_t)+size) == GF_MEM_TRAILER_MAGIC);
     }
 
 
-    free(alloc_ptr);
+    free(temp_ptr);
     helper_xlator_destroy(xl);
 }
 
 int main(void) {
     const UnitTest tests[] = {
         unit_test(test_gf_mem_acct_enable_set),
-        unit_test(test_gf_mem_set_acct_info),
+        unit_test(test_gf_mem_set_acct_info_asserts),
+        unit_test(test_gf_mem_set_acct_info_memory),
     };
 
     return run_tests(tests, "libglusterfs_mem_pool");
