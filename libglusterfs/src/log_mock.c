@@ -42,4 +42,7 @@ int _gf_log_nomem (const char *domain, const char *file,
 void
 gf_log_globals_init (void *data) {}
 
-xlator_t **__glusterfs_this_location () { return NULL; }
+xlator_t **__glusterfs_this_location () 
+{
+    return ((xlator_t **)(uintptr_t)mock());
+}
