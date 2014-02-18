@@ -167,6 +167,12 @@ test_gf_mem_set_acct_info_memory(void **state)
         assert_true(p->xl == xl);
         assert_int_equal(p->header_magic, GF_MEM_HEADER_MAGIC); 
         assert_true(*(uint32_t *)(temp_ptr+sizeof(mem_header_t)+size) == GF_MEM_TRAILER_MAGIC);
+
+        // Check that alloc_ptr has been moved correctly
+        // by gf_mem_set_acct_info
+        p++;
+        p->type = 1234;
+        assert_int_equal(*(uint32_t *)alloc_ptr, p->type);
     }
 
 
