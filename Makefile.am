@@ -12,7 +12,7 @@ SUBDIRS = argp-standalone cmockery2 libglusterfs rpc api xlators glusterfsd \
 pkgconfigdir = @pkgconfigdir@
 pkgconfig_DATA = glusterfs-api.pc libgfchangelog.pc
 
-CLEANFILES =
+CLEANFILES = *_xunit.xml
 
 gitclean: distclean
 	find . -name Makefile.in -exec rm -f {} \;
