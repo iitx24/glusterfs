@@ -166,6 +166,8 @@ __gf_realloc (void *ptr, size_t size)
         if (!THIS->ctx->mem_acct_enable)
                 return REALLOC (ptr, size);
 
+        REQUIRE(NULL != ptr);
+
         tot_size = size + GF_MEM_HEADER_SIZE + GF_MEM_TRAILER_SIZE;
 
         orig_ptr = (char *)ptr - 8 - 4;
