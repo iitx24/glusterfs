@@ -25,6 +25,17 @@
 
 #define layout_size(cnt) (layout_base_size + (cnt * layout_entry_size))
 
+#include <cmockery/pbc.h>
+
+#ifdef UNIT_TESTING
+#include <cmockery/cmockery_override.h>
+#undef GF_CALLOC
+#define GF_CALLOC(n, s, t) test_calloc(n, s)
+#undef GF_FREE
+#define GF_FREE test_free
+#endif
+
+
 
 dht_layout_t *
 dht_layout_new (xlator_t *this, int cnt)
@@ -32,6 +43,8 @@ dht_layout_new (xlator_t *this, int cnt)
         dht_layout_t *layout = NULL;
         dht_conf_t   *conf = NULL;
 
+        REQUIRE(NULL != this);
+        REQUIRE(cnt >= 0);
 
         conf = this->private;
 
@@ -50,6 +63,11 @@ dht_layout_new (xlator_t *this, int cnt)
         }
 
         layout->ref = 1;
+
+        ENSURE(NULL != layout);
+        ENSURE(layout->type == DHT_HASH_TYPE_DM);
+        ENSURE(layout->cnt == cnt);
+        ENSURE(layout->ref == 1);
 out:
         return layout;
 }

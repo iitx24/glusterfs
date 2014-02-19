@@ -57,6 +57,7 @@ CLEANFILES = graph.lex.c y.tab.c y.tab.h
 CONFIG_CLEAN_FILES = $(CONTRIB_BUILDDIR)/uuid/uuid_types.h
 
 #### UNIT TESTS #####
+CLEANFILES += *.gcda *.gcno *_xunit.xml
 noinst_PROGRAMS =
 TESTS =
 
@@ -88,5 +89,4 @@ TESTS += mem_pool_unittest
 #dict_unittest_LDFLAGS = $(UNITTEST_LDFLAGS)
 #TESTS = dict_unittest
 
-CLEANFILES += *.gcda *.gcno *_xunit.xml
 
