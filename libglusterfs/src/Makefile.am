@@ -61,14 +61,6 @@ CLEANFILES += *.gcda *.gcno *_xunit.xml
 noinst_PROGRAMS =
 TESTS =
 
-xxx_unittest_CPPFLAGS = $(UNITTEST_CPPFLAGS) $(libglusterfs_la_CPPFLAGS)
-xxx_unittest_SOURCES = unittest/xxx_unittest.c
-xxx_unittest_CFLAGS = $(UNITTEST_CFLAGS)
-xxx_unittest_LDADD = $(UNITTEST_LDADD)
-xxx_unittest_LDFLAGS = $(UNITTEST_LDFLAGS)
-noinst_PROGRAMS += xxx_unittest
-TESTS += xxx_unittest
-
 mem_pool_unittest_CPPFLAGS = $(UNITTEST_CPPFLAGS) $(libglusterfs_la_CPPFLAGS)
 mem_pool_unittest_SOURCES = mem-pool.c \
 							mem-pool.h \
@@ -80,13 +72,4 @@ mem_pool_unittest_LDADD = $(UNITTEST_LDADD)
 mem_pool_unittest_LDFLAGS = $(UNITTEST_LDFLAGS)
 noinst_PROGRAMS += mem_pool_unittest
 TESTS += mem_pool_unittest
-
-#noinst_PROGRAMS = dict_unittest
-#dict_unittest_CPPFLAGS = $(UNITTEST_CPPFLAGS) $(libglusterfs_la_CPPFLAGS)
-#dict_unittest_SOURCES = dict.h dict.c dict_unittest.c libglusterfs_mock.c
-#dict_unittest_CFLAGS = $(UNITTEST_CFLAGS)
-#dict_unittest_LDADD = $(UNITTEST_LDADD)
-#dict_unittest_LDFLAGS = $(UNITTEST_LDFLAGS)
-#TESTS = dict_unittest
-
 

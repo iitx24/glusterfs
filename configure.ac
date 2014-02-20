@@ -625,7 +625,7 @@ AC_CHECK_FUNC([clock_gettime], [has_monotonic_clock=yes], AC_CHECK_LIB([rt], [cl
 
 dnl Add cmockery2 for unit testing
 AC_CONFIG_SUBDIRS([cmockery2])
-UNITTEST_CFLAGS='-g -Wall -DUNIT_TESTING -DDEBUG -Werror -O0 --coverage'
+UNITTEST_CFLAGS='-g -Wall -DUNIT_TESTING=1 -DDEBUG -Werror -O0 --coverage'
 UNITTEST_CPPFLAGS='-I$(top_srcdir)/cmockery2/src'
 UNITTEST_LDADD='$(top_srcdir)/cmockery2/libcmockery.la'
 UNITTEST_LDFLAGS=-lgcov
