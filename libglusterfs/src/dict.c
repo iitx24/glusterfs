@@ -30,8 +30,6 @@
 #include "byte-order.h"
 #include "globals.h"
 
-#include <cmockery/pbc.h>
-
 data_t *
 get_new_data ()
 {
@@ -50,8 +48,6 @@ dict_t *
 get_new_dict_full (int size_hint)
 {
         dict_t *dict = mem_get0 (THIS->ctx->dict_pool);
-
-	REQUIRE(size_hint > 0);
 
         if (!dict) {
                 return NULL;

@@ -613,7 +613,6 @@ case $host_os in
         CFLAGS="${CFLAGS} -D_INCOMPLETE_XOPEN_C063"
         ;;
 esac
-if echo ${CFLAGS} | grep NDEBUG ; then exit 0 ; fi
 AC_CHECK_FUNC([linkat], [have_linkat=yes])
 if test "x${have_linkat}" = "xyes"; then
    AC_DEFINE(HAVE_LINKAT, 1, [define if found linkat])
@@ -638,7 +637,6 @@ AC_SUBST(UNITTEST_LDFLAGS)
 dnl Check for argp
 AC_CHECK_HEADER([argp.h], AC_DEFINE(HAVE_ARGP, 1, [have argp]))
 AC_CONFIG_SUBDIRS(argp-standalone)
-
 
 BUILD_ARGP_STANDALONE=no
 if test "x${ac_cv_header_argp_h}" = "xno"; then
@@ -706,7 +704,6 @@ if test "x$cc_werror_format_security" = "xno"; then
 else
     CFLAGS="$saved_CFLAGS $CFLAGS"
 fi
-if echo ${CFLAGS} | grep NDEBUG ; then exit 0 ; fi
 
 # check for gcc -Werror=implicit-function-declaration
 saved_CFLAGS=$CFLAGS
@@ -719,7 +716,6 @@ if test "x$cc_werror_implicit" = "xno"; then
 else
     CFLAGS="$saved_CFLAGS $CFLAGS"
 fi
-if echo ${CFLAGS} | grep NDEBUG ; then exit 0 ; fi
 
 case $host_os in
      linux*)
@@ -887,7 +883,6 @@ if test "x$BUILD_GLUPY" = "xyes"; then
    AC_SUBST(GLUPY_SUBDIR_SRC_MAKEFILE)
 fi
 # end glupy section
-if echo ${CFLAGS} | grep NDEBUG ; then exit 0 ; fi
 
 AC_SUBST(CFLAGS)
 # end enable debug section

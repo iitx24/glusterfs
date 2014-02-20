@@ -81,11 +81,7 @@ void* __gf_default_calloc (int cnt, size_t size)
 {
         void *ptr = NULL;
 
-#if defined(FSDFSDUNIT_TESTING)
-        ptr = test_calloc (cnt, size);
-#else
         ptr = calloc (cnt, size);
-#endif
         if (!ptr)
                 gf_log_nomem ("", GF_LOG_ALERT, (cnt * size));
 
